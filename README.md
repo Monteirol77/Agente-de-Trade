@@ -18,6 +18,8 @@ pip install -r requirements.txt
 
 Copie `.env` e ajuste valores se necessário (já existe um `.env` de exemplo no repositório).
 
+**Moeda (paper trading):** a simulação é **sempre em dólares (USD)** — `config.py` fixa a cotação CoinGecko e o símbolo **$**; não há opção para EUR. Trades antigos na base mantêm os números gravados à data; não há conversão automática.
+
 ## Executar agente + dashboard
 
 ```bash

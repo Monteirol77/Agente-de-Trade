@@ -126,7 +126,7 @@ def _closes_to_ohlc(df: pd.DataFrame, rule: str) -> pd.DataFrame:
 def build_modal_title(sym: str, trade_id: int, pl_pct: float | None, dur_sec: int | None) -> str:
     pl = f"{pl_pct:+.1f}%" if pl_pct is not None else "—"
     dur = format_duration_title(dur_sec)
-    return f"{sym}/EUR — Trade #{trade_id} | {pl} | {dur}"
+    return f"{sym}/{config.CURRENCY_LABEL} — Trade #{trade_id} | {pl} | {dur}"
 
 
 def build_trade_detail_figure(trade: dict[str, Any], sym: str) -> go.Figure:
@@ -179,7 +179,7 @@ def build_trade_detail_figure(trade: dict[str, Any], sym: str) -> go.Figure:
         shared_xaxes=True,
         vertical_spacing=0.06,
         row_heights=[0.62, 0.38],
-        subplot_titles=("Preço (EUR)", "Stochastic RSI (14, 3, 3)"),
+        subplot_titles=(f"Preço ({config.CURRENCY_LABEL})", "Stochastic RSI (14, 3, 3)"),
     )
 
     ts_c = pd.to_datetime(ohlc["timestamp"], utc=True)
@@ -269,7 +269,7 @@ def build_trade_detail_figure(trade: dict[str, Any], sym: str) -> go.Figure:
         col=1,
     )
 
-    fig.update_yaxes(title_text="€", row=1, col=1, gridcolor="#21262d")
+    fig.update_yaxes(title_text=config.CURRENCY_SYMBOL, row=1, col=1, gridcolor="#21262d")
     fig.update_xaxes(gridcolor="#21262d", row=1, col=1)
 
     # Stochastic RSI

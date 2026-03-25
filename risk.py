@@ -28,7 +28,7 @@ def valor_maximo_por_operacao(saldo_disponivel: float) -> float:
 
 
 def saldo_total_portfolio(saldo_disponivel: float, valor_mercado_posicoes: float) -> float:
-    """Saldo em caixa + valor de mercado das posições abertas (€)."""
+    """Saldo em caixa + valor de mercado das posições abertas (moeda de cotação)."""
     return float(saldo_disponivel) + float(valor_mercado_posicoes)
 
 
@@ -83,7 +83,7 @@ def avaliar_permitir_compra(
     if not ordem_respeita_limite_percentual(valor_ordem_eur, saldo_disponivel):
         return AvaliacaoCompra(
             False,
-            f"Ordem acima de {config.MAX_PCT_POR_OPERACAO:.0%} do saldo (máx. {vmax:.2f} €).",
+            f"Ordem acima de {config.MAX_PCT_POR_OPERACAO:.0%} do saldo (máx. {vmax:.2f}).",
             vmax,
         )
 
@@ -94,7 +94,7 @@ def alerta_saldo_critico(saldo_total: float) -> None:
     """Registo de alerta antes do limite duro (opcionalmente usado pelo dashboard)."""
     if saldo_total < config.LIMITE_SALDO_MINIMO:
         logger.critical(
-            "ALERTA RISCO: saldo total %.2f € abaixo do limite mínimo %.2f € — paragem obrigatória.",
+            "ALERTA RISCO: saldo total %.2f abaixo do limite mínimo %.2f — paragem obrigatória.",
             saldo_total,
             config.LIMITE_SALDO_MINIMO,
         )

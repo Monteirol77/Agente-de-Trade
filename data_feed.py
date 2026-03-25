@@ -146,9 +146,9 @@ def _request_with_retry(
     raise RuntimeError("Falha desconhecida em _request_with_retry")
 
 
-def fetch_simple_prices_eur(coin_ids: list[str] | None = None) -> dict[str, float]:
+def fetch_simple_prices(coin_ids: list[str] | None = None) -> dict[str, float]:
     """
-    Preços atuais em EUR (endpoint simple/price) — chamada leve, adequada a cada ~30s.
+    Preços atuais na moeda `config.VS_CURRENCY` (simple/price) — chamada leve, adequada a cada ~30s.
     """
     ids = coin_ids or list(config.ASSETS.values())
     url = f"{config.COINGECKO_BASE_URL}/simple/price"
@@ -171,9 +171,9 @@ def fetch_simple_prices_eur(coin_ids: list[str] | None = None) -> dict[str, floa
         return {}
 
 
-def fetch_coins_markets_eur(coin_ids: list[str] | None = None) -> dict[str, dict[str, Any]]:
+def fetch_coins_markets(coin_ids: list[str] | None = None) -> dict[str, dict[str, Any]]:
     """
-    Uma chamada a `/coins/markets` com preço, variação 24h, market cap e volume (EUR).
+    Uma chamada a `/coins/markets` com preço, variação 24h, market cap e volume (vs_currency).
     Útil para cartões do dashboard (evita N× simple/price).
     """
     ids = coin_ids or list(config.ASSETS.values())
@@ -264,7 +264,7 @@ def fetch_market_chart_history(
     Histórico para indicadores. Servido a partir do SQLite se o último `market_chart`
     tiver menos de `COINGECKO_CHART_REFRESH_SEC` segundos (predef.: 10 min).
 
-    Não repetir `market_chart` a cada ciclo de 30s — só `fetch_simple_prices_eur`.
+    Não repetir `market_chart` a cada ciclo de 30s — só `fetch_simple_prices`.
     """
     if not _should_refresh_chart_from_api(coin_id, force_refresh=force_refresh):
         return load_prices_from_db(coin_id)
@@ -320,10 +320,10 @@ def fetch_market_chart_range_sec(
     return _market_chart_to_dataframe(payload)
 
 
-def fetch_ohlc_eur(coin_id: str, days: int) -> pd.DataFrame:
+def fetch_ohlc(coin_id: str, days: int) -> pd.DataFrame:
     """
     Velas OHLC da CoinGecko. `days` ∈ {1,7,14,30,90,180,365}; aproxima se necessário.
-    Colunas: timestamp, open, high, low, close (EUR).
+    Colunas: timestamp, open, high, low, close (na moeda VS_CURRENCY).
     """
     allowed = (1, 7, 14, 30, 90, 180, 365)
     d = days if days in allowed else min(allowed, key=lambda a: abs(a - days))
@@ -387,7 +387,7 @@ if __name__ == "__main__":
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     )
     print("--- Preços atuais (simple/price) ---")
-    simple = fetch_simple_prices_eur()
+    simple = fetch_simple_prices()
     print(simple)
     print("\n--- Indicadores a partir do histórico (cache ou API) ---")
     from indicators import compute_all_indicators

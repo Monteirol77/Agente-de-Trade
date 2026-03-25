@@ -1,5 +1,8 @@
 """
 Persistência SQLite: preços, trades e sinais.
+
+Os nomes de colunas `preco_eur`, `valor_eur`, `pl_eur` são históricos (legado);
+os valores gravados correspondem à moeda de cotação actual (`config.VS_CURRENCY`, USD por defeito).
 """
 from __future__ import annotations
 

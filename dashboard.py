@@ -1,5 +1,5 @@
 """
-Dashboard Dash — tema escuro, estilo operacional (paper trading UNI / PENDLE).
+Dashboard Dash — tema escuro, paper trading UNI / PENDLE em USD (dólares).
 """
 from __future__ import annotations
 
@@ -25,12 +25,12 @@ import app_state
 import config
 import trade_chart
 import dashboard_charts
-from data_feed import fetch_simple_prices_eur
+from data_feed import fetch_simple_prices
 from indicators import compute_all_indicators
 
 logger = logging.getLogger(__name__)
 
-AVISO_SALDO_EUR: float = 7500.0
+AVISO_SALDO_USD: float = 7500.0
 CID_TO_SYM: dict[str, str] = {v: k for k, v in config.ASSETS.items()}
 TPL_DARK = "plotly_dark"
 COLOR_UNI = "#ff6b35"
@@ -38,10 +38,10 @@ COLOR_PENDLE = "#6366f1"
 NOME_ATIVO: dict[str, str] = {"UNI": "Uniswap", "PENDLE": "Pendle"}
 
 
-def _fmt_eur(x: float | None) -> str:
+def _fmt_money(x: float | None) -> str:
     if x is None:
         return "—"
-    return f"{x:,.2f} €"
+    return f"{config.CURRENCY_SYMBOL}{x:,.2f}"
 
 
 def _fmt_pct(x: float | None) -> str:
@@ -50,18 +50,19 @@ def _fmt_pct(x: float | None) -> str:
     return f"{x:+.2f} %"
 
 
-def _fmt_compact_eur(n: float | None) -> str:
+def _fmt_compact_money(n: float | None) -> str:
     if n is None:
         return "—"
+    sym = config.CURRENCY_SYMBOL
     if abs(n) >= 1e12:
-        return f"{n / 1e12:.2f}×10¹² €"
+        return f"{sym}{n / 1e12:.2f}×10¹²"
     if abs(n) >= 1e9:
-        return f"{n / 1e9:.2f} mil M€"
+        return f"{sym}{n / 1e9:.2f} mil M"
     if abs(n) >= 1e6:
-        return f"{n / 1e6:.2f} M€"
+        return f"{sym}{n / 1e6:.2f} M"
     if abs(n) >= 1e3:
-        return f"{n / 1e3:.2f} k€"
-    return f"{n:.2f} €"
+        return f"{sym}{n / 1e3:.2f} k"
+    return f"{sym}{n:.2f}"
 
 
 def _merge_indicator_frames(cached: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]:
@@ -87,7 +88,7 @@ def _resolve_precos(snap_prices: dict[str, float]) -> dict[str, float]:
     if snap_prices and len(snap_prices) >= len(config.ASSETS):
         return {k: float(v) for k, v in snap_prices.items() if k in config.ASSETS.values()}
     try:
-        api = fetch_simple_prices_eur()
+        api = fetch_simple_prices()
         return {cid: float(api[cid]) for cid in config.ASSETS.values() if cid in api}
     except Exception:
         return {k: float(v) for k, v in snap_prices.items()}
@@ -124,7 +125,7 @@ def _asset_header_meta(sym: str, cid: str, px: float | None, color: str) -> Any:
                         width=True,
                     ),
                     dbc.Col(
-                        html.Div(_fmt_eur(px) if px is not None else "—", className="price-big text-end"),
+                        html.Div(_fmt_money(px) if px is not None else "—", className="price-big text-end"),
                         width="auto",
                     ),
                 ],
@@ -164,9 +165,9 @@ def _build_dynamic_main() -> tuple[Any, Any]:
         badge = dbc.Badge("● Parado", color="secondary", className="fs-6 me-2", pill=True)
 
     alerta: Any = html.Div()
-    if st_total < AVISO_SALDO_EUR:
+    if st_total < AVISO_SALDO_USD:
         alerta = dbc.Alert(
-            f"Património abaixo do aviso ({AVISO_SALDO_EUR:,.0f} €): {st_total:,.2f} €",
+            f"Património abaixo do aviso ({config.CURRENCY_SYMBOL}{AVISO_SALDO_USD:,.0f}): {config.CURRENCY_SYMBOL}{st_total:,.2f}",
             color="warning",
             className="py-2",
         )
@@ -195,7 +196,7 @@ def _build_dynamic_main() -> tuple[Any, Any]:
                 html.Div(
                     [
                         html.Div("Lucro / Perda total", className="label"),
-                        html.Div(_fmt_eur(pl_total), className="value text-success" if pl_total >= 0 else "value text-danger"),
+                        html.Div(_fmt_money(pl_total), className="value text-success" if pl_total >= 0 else "value text-danger"),
                     ],
                     className="metric-tile",
                 ),
@@ -205,7 +206,7 @@ def _build_dynamic_main() -> tuple[Any, Any]:
                 html.Div(
                     [
                         html.Div("Maior perda (trade)", className="label"),
-                        html.Div(_fmt_eur(max_loss) if max_loss is not None else "—", className="value text-danger"),
+                        html.Div(_fmt_money(max_loss) if max_loss is not None else "—", className="value text-danger"),
                     ],
                     className="metric-tile",
                 ),
@@ -216,9 +217,13 @@ def _build_dynamic_main() -> tuple[Any, Any]:
 
     paper = html.Div(
         [
-            html.H5("Paper trading (EUR)", className="mt-2 mb-3"),
+            html.H5(f"Paper trading — {config.CURRENCY_LABEL} ({config.CURRENCY_SYMBOL})", className="mt-2 mb-3"),
             html.P(
-                f"Saldo inicial simulado: {config.SALDO_INICIAL:,.2f} € · Preços CoinGecko em tempo quase real.",
+                "Modo simulado: saldo, operações e P&L são sempre em dólares americanos.",
+                className="small text-success mb-1",
+            ),
+            html.P(
+                f"Saldo inicial simulado: {config.CURRENCY_SYMBOL}{config.SALDO_INICIAL:,.2f} · Preços CoinGecko (USD) em tempo quase real.",
                 className="small text-muted mb-3",
             ),
             dbc.Row(
@@ -226,7 +231,7 @@ def _build_dynamic_main() -> tuple[Any, Any]:
                 children=[
                     dbc.Col(
                         html.Div(
-                            [html.Div("Saldo EUR", className="label"), html.Div(_fmt_eur(p.saldo_disponivel), className="value")],
+                            [html.Div(f"Saldo {config.CURRENCY_LABEL}", className="label"), html.Div(_fmt_money(p.saldo_disponivel), className="value")],
                             className="metric-tile",
                         ),
                         md=3,
@@ -235,7 +240,7 @@ def _build_dynamic_main() -> tuple[Any, Any]:
                         html.Div(
                             [
                                 html.Div("Valor total carteira", className="label"),
-                                html.Div(_fmt_eur(st_total), className="value"),
+                                html.Div(_fmt_money(st_total), className="value"),
                             ],
                             className="metric-tile",
                         ),
@@ -246,7 +251,7 @@ def _build_dynamic_main() -> tuple[Any, Any]:
                             [
                                 html.Div("Lucro / Perda total", className="label"),
                                 html.Div(
-                                    _fmt_eur(pl_total),
+                                    _fmt_money(pl_total),
                                     className="value text-success" if pl_total >= 0 else "value text-danger",
                                 ),
                             ],
@@ -363,7 +368,7 @@ def _build_dynamic_main() -> tuple[Any, Any]:
                                             html.Th("Ativo"),
                                             html.Th("Qtd"),
                                             html.Th("Preço"),
-                                            html.Th("Total €"),
+                                            html.Th(f"Total ({config.CURRENCY_LABEL})"),
                                             html.Th("Motivo"),
                                             html.Th("Duração"),
                                             html.Th(""),
@@ -406,7 +411,7 @@ def create_app() -> Dash:
         assets_folder=str(_DASH_DIR / "assets"),
         suppress_callback_exceptions=True,
     )
-    app.title = "Agente trading — Paper (EUR)"
+    app.title = f"Agente trading — Paper ({config.CURRENCY_LABEL})"
 
     app.layout = html.Div(
         className="dark-page",
@@ -443,7 +448,7 @@ def create_app() -> Dash:
                                     ),
                                     html.H2("Agente de trading automático", className="mb-2 fw-bold"),
                                     html.P(
-                                        "Modo paper trading em EUR (CoinGecko). O agente avalia sinais a cada "
+                                        f"Modo paper trading em {config.CURRENCY_LABEL} (CoinGecko). O agente avalia sinais a cada "
                                         f"{config.CICLO_SEGUNDOS}s — sem ligação a exchanges.",
                                         className="text-muted small mb-0",
                                     ),
@@ -477,7 +482,7 @@ def create_app() -> Dash:
                                                     html.Li(f"Máximo {config.MAX_PCT_POR_OPERACAO:.0%} do saldo por operação."),
                                                     html.Li(f"No máximo {config.MAX_POSICOES} posições abertas em simultâneo."),
                                                     html.Li(
-                                                        f"Paragem automática se o património total descer abaixo de {config.LIMITE_SALDO_MINIMO:,.0f} €."
+                                                        f"Paragem automática se o património total descer abaixo de {config.CURRENCY_SYMBOL}{config.LIMITE_SALDO_MINIMO:,.0f}."
                                                     ),
                                                 ],
                                                 className="small mb-0 ps-3",
@@ -648,7 +653,7 @@ def create_app() -> Dash:
                     html.Div(
                         className="footer-note",
                         children=[
-                            "Dashboard (EUR) · Paper trading · Dados CoinGecko. ",
+                            f"Dashboard ({config.CURRENCY_LABEL}) · Paper trading · Dados CoinGecko. ",
                             "Se não vês o fundo escuro nem a linha verde acima, faz hard refresh (Cmd+Shift+R) e confirma que corres ",
                             html.Code("python main.py", className="text-light"),
                             " dentro da pasta ",

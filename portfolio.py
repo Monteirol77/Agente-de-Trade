@@ -1,5 +1,5 @@
 """
-Portefólio em paper trading: saldo, posições abertas, P&L e persistência SQLite.
+Portefólio em paper trading (USD): saldo, posições abertas, P&L e persistência SQLite.
 """
 from __future__ import annotations
 
@@ -70,7 +70,7 @@ class Portfolio:
         return ativo in self.posicoes
 
     def valor_mercado_posicoes(self, precos_por_ativo: dict[str, float]) -> float:
-        """Valor de mercado (€) das posições abertas com os preços dados."""
+        """Valor de mercado (moeda de cotação) das posições abertas com os preços dados."""
         total = 0.0
         for ativo, pos in self.posicoes.items():
             px = precos_por_ativo.get(ativo)
@@ -84,7 +84,7 @@ class Portfolio:
         return risk.saldo_total_portfolio(self.saldo_disponivel, self.valor_mercado_posicoes(precos_por_ativo))
 
     def pl_realizado_acumulado(self) -> float:
-        """Soma do P&L dos trades já fechados (€)."""
+        """Soma do P&L dos trades já fechados (mesma moeda que os preços)."""
         s = 0.0
         for t in db.fetch_closed_trades():
             if t.get("pl_eur") is not None:
@@ -117,7 +117,7 @@ class Portfolio:
         self.agente_parado = True
         self._persistir_estado()
         logger.critical(
-            "Agente PARADO: património total %.2f € inferior a %.2f €.",
+            "Agente PARADO: património total %.2f inferior a %.2f (limite mínimo).",
             st,
             config.LIMITE_SALDO_MINIMO,
         )
@@ -168,7 +168,7 @@ class Portfolio:
         del self.posicoes[ativo]
         self._persistir_estado()
         logger.info(
-            "Fechado %s @ %.6f  P&L %.2f € (%.2f%%)  motivo=%s",
+            "Fechado %s @ %.6f  P&L %.2f (%.2f%%)  motivo=%s",
             ativo,
             preco_saida,
             pl_eur,
@@ -220,7 +220,7 @@ class Portfolio:
         )
         self._persistir_estado()
         logger.info(
-            "Compra %s  q=%.8f  preço=%.6f  custo=%.2f €  trade_id=%s",
+            "Compra %s  q=%.8f  preço=%.6f  custo=%.2f  trade_id=%s",
             ativo,
             quantidade,
             preco,

@@ -13,7 +13,7 @@ import app_state
 import config
 import database as db
 import risk
-from data_feed import fetch_simple_prices_eur, fetch_market_chart_history
+from data_feed import fetch_simple_prices, fetch_market_chart_history
 from indicators import compute_all_indicators
 from strategy import (
     Sinal,
@@ -56,7 +56,7 @@ def run_cycle() -> None:
 
     with _cycle_lock:
         try:
-            precos_raw = fetch_simple_prices_eur()
+            precos_raw = fetch_simple_prices()
             precos = _precos_tracked(precos_raw)
             if len(precos) < len(config.ASSETS):
                 logger.warning("Preços incompletos: %s", precos_raw)

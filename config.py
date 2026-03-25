@@ -44,7 +44,10 @@ ASSETS: dict[str, str] = {
     "PENDLE": "pendle",
 }
 
-VS_CURRENCY: str = "eur"
+# Paper trading: sempre em dólares (USD). Não configurável — toda a simulação usa esta moeda.
+VS_CURRENCY: str = "usd"
+CURRENCY_SYMBOL: str = "$"
+CURRENCY_LABEL: str = "USD"
 
 # --- Base de dados ---
 DATABASE_PATH: Path = BASE_DIR / "data" / "trading.db"

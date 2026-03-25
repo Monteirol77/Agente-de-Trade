@@ -13,7 +13,7 @@ from plotly.subplots import make_subplots
 
 import config
 import database as db
-from data_feed import fetch_ohlc_eur
+from data_feed import fetch_ohlc
 from indicators import compute_stochastic_rsi
 
 logger = logging.getLogger(__name__)
@@ -87,7 +87,7 @@ def build_asset_combined_figure(
         shared_xaxes=True,
         vertical_spacing=0.06,
         row_heights=[0.7, 0.3],
-        subplot_titles=(f"{sym}/EUR — preço", "Stochastic RSI (14, 3, 3)"),
+        subplot_titles=(f"{sym}/{config.CURRENCY_LABEL} — preço", "Stochastic RSI (14, 3, 3)"),
     )
 
     fig.update_layout(
@@ -117,7 +117,7 @@ def build_asset_combined_figure(
             )
             _stoch_subplot(fig, df_ind, row=2)
             fig.update_xaxes(gridcolor="#21262d", row=1, col=1)
-            fig.update_yaxes(gridcolor="#21262d", title="€", row=1, col=1)
+            fig.update_yaxes(gridcolor="#21262d", title=config.CURRENCY_SYMBOL, row=1, col=1)
             return fig
 
         xline = [t.to_pydatetime() for t in pd.to_datetime(d["timestamp"], utc=True)]
@@ -177,7 +177,7 @@ def build_asset_combined_figure(
     else:
         ohlc_days = 7 if days_key == "7d" else 30
         try:
-            ohlc = fetch_ohlc_eur(coin_id, days=ohlc_days)
+            ohlc = fetch_ohlc(coin_id, days=ohlc_days)
         except Exception:
             logger.exception("ohlc %s", coin_id)
             ohlc = pd.DataFrame()
@@ -194,7 +194,7 @@ def build_asset_combined_figure(
             )
             ind2 = compute_stochastic_rsi(df_ind.copy()) if not df_ind.empty else df_ind
             _stoch_subplot(fig, ind2, row=2)
-            fig.update_yaxes(title="€", row=1, col=1)
+            fig.update_yaxes(title=config.CURRENCY_SYMBOL, row=1, col=1)
             return fig
 
         ohlc = ohlc.sort_values("timestamp").reset_index(drop=True)
@@ -262,7 +262,7 @@ def build_asset_combined_figure(
         _stoch_subplot(fig, stoch_df, row=2)
 
     fig.update_xaxes(gridcolor="#21262d", row=1, col=1)
-    fig.update_yaxes(gridcolor="#21262d", title="€", row=1, col=1)
+    fig.update_yaxes(gridcolor="#21262d", title=config.CURRENCY_SYMBOL, row=1, col=1)
     fig.update_xaxes(gridcolor="#21262d", row=2, col=1)
     fig.update_layout(xaxis_rangeslider_visible=False, xaxis2_rangeslider_visible=False)
     return fig
@@ -339,8 +339,18 @@ def build_equity_figure_and_stats() -> tuple[go.Figure, Any]:
             fillcolor=fill_col,
         )
     )
-    fig.add_hline(y=saldo_ini, line_dash="dash", line_color="#8b949e", annotation_text=f"Inicial {saldo_ini:,.0f} €")
-    fig.add_hline(y=lim, line_dash="dash", line_color="#f85149", annotation_text=f"Mínimo {lim:,.0f} €")
+    fig.add_hline(
+        y=saldo_ini,
+        line_dash="dash",
+        line_color="#8b949e",
+        annotation_text=f"Inicial {config.CURRENCY_SYMBOL}{saldo_ini:,.0f}",
+    )
+    fig.add_hline(
+        y=lim,
+        line_dash="dash",
+        line_color="#f85149",
+        annotation_text=f"Mínimo {config.CURRENCY_SYMBOL}{lim:,.0f}",
+    )
 
     fig.update_layout(
         template=TPL,
@@ -348,16 +358,19 @@ def build_equity_figure_and_stats() -> tuple[go.Figure, Any]:
         margin=dict(l=50, r=30, t=40, b=40),
         paper_bgcolor="#161b22",
         plot_bgcolor="#0d1117",
-        yaxis=dict(title="€", gridcolor="#21262d"),
+        yaxis=dict(title=config.CURRENCY_SYMBOL, gridcolor="#21262d"),
         xaxis=dict(gridcolor="#21262d"),
         hovermode="x unified",
-        title=dict(text="Evolução do património total (EUR)", font=dict(size=14)),
+        title=dict(
+            text=f"Evolução do património total ({config.CURRENCY_LABEL})",
+            font=dict(size=14),
+        ),
     )
 
     stats = html.Div(
         [
             html.Span(f"Retorno total: {ret_pct:+.2f}%", className="me-3"),
-            html.Span(f"Máximo património: {_fmt_eur_static(peak)}", className="me-3"),
+            html.Span(f"Máximo património: {_fmt_money_static(peak)}", className="me-3"),
             html.Span(f"Drawdown máximo: {max_dd:.2f}%", className="text-danger" if max_dd < -0.01 else ""),
         ],
         className="small text-light mb-2 d-flex flex-wrap gap-2",
@@ -365,5 +378,5 @@ def build_equity_figure_and_stats() -> tuple[go.Figure, Any]:
     return fig, stats
 
 
-def _fmt_eur_static(x: float) -> str:
-    return f"{x:,.2f} €"
+def _fmt_money_static(x: float) -> str:
+    return f"{config.CURRENCY_SYMBOL}{x:,.2f}"
