@@ -1,0 +1,134 @@
+/* Tema escuro — agente paper trading */
+body {
+  background-color: #0d1117 !important;
+  color: #e6edf3 !important;
+}
+
+.dark-page {
+  background: linear-gradient(180deg, #0d1117 0%, #010409 100%);
+  min-height: 100vh;
+  padding-bottom: 3rem;
+}
+
+.top-bar-muted {
+  color: #8b949e;
+  font-size: 0.85rem;
+}
+
+.card-rule {
+  background-color: #161b22 !important;
+  border: 1px solid #30363d !important;
+  border-radius: 12px !important;
+}
+
+.card-rule .card-body {
+  color: #c9d1d9;
+}
+
+.card-rule h5,
+.card-rule h6 {
+  color: #f0f6fc;
+}
+
+.metric-tile {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+}
+
+.metric-tile .label {
+  color: #8b949e;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.metric-tile .value {
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: #f0f6fc;
+}
+
+.asset-card-dash {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+/* Selector Linha / Candlestick acima dos gráficos de preço */
+.chart-mode-selector {
+  padding: 0.5rem 0.75rem;
+  background: rgba(22, 27, 34, 0.95);
+  border: 1px solid #30363d;
+  border-radius: 10px;
+}
+
+.chart-mode-selector .btn-group .btn {
+  font-weight: 600;
+  min-width: 8.5rem;
+}
+
+.asset-card-head {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #30363d;
+}
+
+.avatar-coin {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.price-big {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #f0f6fc;
+}
+
+.pill-green {
+  color: #3fb950;
+  font-weight: 600;
+}
+
+.pill-red {
+  color: #f85149;
+  font-weight: 600;
+}
+
+.pill-gray {
+  color: #8b949e;
+}
+
+.footer-note {
+  color: #6e7681;
+  font-size: 0.8rem;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #30363d;
+}
+
+.trade-modal-dark .modal-content {
+  background-color: #161b22 !important;
+  border: 1px solid #30363d !important;
+  color: #e6edf3 !important;
+}
+
+.trade-modal-dark .modal-header {
+  border-bottom-color: #30363d !important;
+}
+
+.trade-modal-dark .modal-body {
+  background-color: #0d1117 !important;
+}
+
+/* Dash DataTable dark */
+.dash-table-container .dash-spreadsheet-container {
+  border-color: #30363d !important;
+}
