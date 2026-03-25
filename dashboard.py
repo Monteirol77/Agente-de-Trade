@@ -4,6 +4,7 @@ Dashboard Dash — tema escuro, estilo operacional (paper trading UNI / PENDLE).
 from __future__ import annotations
 
 import errno
+import os
 import traceback
 import logging
 from datetime import datetime, timezone
@@ -938,14 +939,16 @@ def run_dashboard() -> None:
     app = create_app()
     logger.info("Dashboard em %s | assets=%s", _DASH_DIR, _DASH_DIR / "assets")
     base = config.DASH_PORT
+    # No Railway (e similares) PORT é fixo; não tentar portas alternativas.
+    port_env_fixed = bool(os.getenv("PORT"))
     for offset in range(20):
         port = base + offset
         try:
-            logger.info("Abre no browser: http://%s:%s/", config.DASH_HOST, port)
+            logger.info("Servidor Dash em http://%s:%s/", config.DASH_HOST, port)
             app.run(host=config.DASH_HOST, port=port, debug=False)
             return
         except OSError as e:
-            if _port_em_uso(e) and offset < 19:
+            if _port_em_uso(e) and offset < 19 and not port_env_fixed:
                 logger.warning(
                     "Porta %s ocupada — a tentar %s (ou termina o outro Python: lsof -i :%s)",
                     port,

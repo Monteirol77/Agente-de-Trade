@@ -50,5 +50,7 @@ VS_CURRENCY: str = "eur"
 DATABASE_PATH: Path = BASE_DIR / "data" / "trading.db"
 
 # --- Dashboard ---
-DASH_HOST: str = os.getenv("DASH_HOST", "127.0.0.1")
-DASH_PORT: int = int(os.getenv("DASH_PORT", "8050"))
+# Railway/Heroku/Render definem PORT; em local usa-se normalmente só DASH_PORT (8050).
+DASH_PORT: int = int(os.getenv("PORT", os.getenv("DASH_PORT", "8050")))
+# Com PORT definido pelo PaaS o processo tem de escutar em 0.0.0.0 (não em 127.0.0.1).
+DASH_HOST: str = os.getenv("DASH_HOST", "0.0.0.0" if os.getenv("PORT") else "127.0.0.1")
