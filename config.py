@@ -52,5 +52,13 @@ DATABASE_PATH: Path = BASE_DIR / "data" / "trading.db"
 # --- Dashboard ---
 # Railway/Heroku/Render definem PORT; em local usa-se normalmente só DASH_PORT (8050).
 DASH_PORT: int = int(os.getenv("PORT", os.getenv("DASH_PORT", "8050")))
-# Com PORT definido pelo PaaS o processo tem de escutar em 0.0.0.0 (não em 127.0.0.1).
-DASH_HOST: str = os.getenv("DASH_HOST", "0.0.0.0" if os.getenv("PORT") else "127.0.0.1")
+# O .env local pode ter DASH_HOST=127.0.0.1; após load_dotenv isso sobrescreve o default.
+# Em PaaS (PORT definido) o proxy só liga se a app escutar em 0.0.0.0 (não em 127.0.0.1).
+if os.getenv("PORT"):
+    _dh = os.getenv("DASH_HOST", "0.0.0.0").strip()
+    if _dh in ("127.0.0.1", "localhost", "::1"):
+        DASH_HOST = "0.0.0.0"
+    else:
+        DASH_HOST = _dh
+else:
+    DASH_HOST = os.getenv("DASH_HOST", "127.0.0.1")
